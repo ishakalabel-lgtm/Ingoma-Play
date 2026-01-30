@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INGOMA PLAY</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial;background:#000;color:#fff}
+header{background:#111;padding:15px;text-align:center;font-weight:bold}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#111}
+nav button{flex:1;background:none;border:none;color:#fff;padding:12px}
+nav button.active{background:#222;color:#00ffcc}
+main{padding:15px;padding-bottom:80px}
+.card{background:#111;padding:12px;border-radius:8px;margin-bottom:12px}
+input,select,textarea{width:100%;padding:10px;margin-bottom:10px;border-radius:6px;border:none}
+button{background:#00ffcc;color:#000;border:none;padding:10px;border-radius:6px;font-weight:bold}
+.hidden{display:none}
+.back{color:#00ffcc;font-size:13px;margin-bottom:10px}
+</style>
+</head>
+
+<body>
+
+<header id="logo">🎵 INGOMA PLAY</header>
+
+<main>
+
+<!-- HOME -->
+<section id="home">
+  <div class="card">
+    <h3>Murakaza neza</h3>
+    <input placeholder="Rondera indirimbo..." oninput="searchSong(this.value)">
+  </div>
+
+  <div class="card">
+    <b>TOP TEN SONGS</b>
+    <div id="songs"></div>
+  </div>
+</section>
+
+<!-- UMURIRIMVYI -->
+<section id="artist" class="hidden">
+  <div class="back" onclick="go('home')">← GUSUBIRINYUMA</div>
+
+  <div class="card">
+    <h3>URI MUSHASHA?</h3>
+    <button onclick="go('signup')">UGURURA SHENE</button>
+  </div>
+</section>
+
+<!-- SIGNUP -->
+<section id="signup" class="hidden">
+  <div class="back" onclick="go('artist')">← GUSUBIRINYUMA</div>
+
+  <div class="card">
+    <input id="realname" placeholder="Izina nyakuri">
+    <input id="artistname" placeholder="Izina mu muziki">
+    <input id="phone" placeholder="Numero ya telefone">
+    <input id="pin" placeholder="PIN (8)" type="password">
+    <button onclick="registerArtist()">RUNGIKA</button>
+  </div>
+</section>
+
+<!-- UPLOAD -->
+<section id="upload" class="hidden">
+  <div class="back" onclick="go('artist')">← GUSUBIRINYUMA</div>
+
+  <div class="card">
+    <input id="songtitle" placeholder="Izina ry'indirimbo">
+    <input type="file" id="cover">
+    <input type="file" id="audio">
+    <button onclick="uploadSong()">UPLOAD</button>
+  </div>
+</section>
+
+<!-- PROFILE -->
+<section id="profile" class="hidden">
+  <div class="card">
+    <input id="adminPin" placeholder="PIN">
+    <button onclick="adminLogin()">Injira</button>
+    <p id="msg"></p>
+  </div>
+
+  <div id="admin" class="card hidden">
+    <h3>ADMIN PANEL</h3>
+    <p>Abaririmvyi bose + PIN</p>
+    <div id="artistsList"></div>
+  </div>
+</section>
+
+</main>
+
+<nav>
+  <button id="b1" class="active" onclick="go('home')">HOME</button>
+  <button id="b2" onclick="go('artist')">UMURIRIMVYI</button>
+  <button id="b3" onclick="go('profile')">PROFILES</button>
+</nav>
+
+<script>
+/* SUPABASE */
+const supabase = supabaseJs.createClient(
+ "https://fmrjmanvrydfmpiiaoap.supabase.co",
+ "sb_publishable_VcIpIaE3lrUalxNftaZOIQ_V0mbvluR"
+);
+
+/* NAV */
+function go(id){
+ document.querySelectorAll("section").forEach(s=>s.classList.add("hidden"));
+ document.getElementById(id).classList.remove("hidden");
+ document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+ if(id==="home")b1.classList.add("active");
+ if(id==="artist")b2.classList.add("active");
+ if(id==="profile")b3.classList.add("active");
+}
+
+/* LOAD SONGS */
+async function loadSongs(){
+ const {data}=await supabase.from("songs").select("*").order("views",{ascending:false}).limit(10);
+ songs.innerHTML="";
+ if(!data||data.length===0){songs.innerHTML="<small>Nta ndirimbo zirashirwako</small>";return;}
+ data.forEach(s=>{
+  songs.innerHTML+=`
+  <div class="card">
+   <b>${s.title}</b><br>
+   <audio controls src="${s.audio_url}" onplay="addView(${s.id})"></audio>
+   <div>${s.views} views</div>
+  </div>`;
+ });
+}
+
+/* VIEW */
+async function addView(id){
+ await supabase.rpc("add_view",{song_id:id});
+}
+
+/* REGISTER */
+async function registerArtist(){
+ await supabase.from("artists").insert({
+  realname:realname.value,
+  artistname:artistname.value,
+  phone:phone.value,
+  pin:pin.value
+ });
+ alert("Channel yuguruwe");
+ go("upload");
+}
+
+/* UPLOAD */
+async function uploadSong(){
+ alert("Upload logic ihujwe na Supabase Storage");
+}
+
+/* ADMIN */
+let clicks=0;
+logo.onclick=()=>{clicks++;if(clicks===10)go("profile")}
+
+function adminLogin(){
+ if(adminPin.value==="9999"){
+  admin.classList.remove("hidden");
+  loadArtists();
+ }else msg.innerText="PIN siyo";
+}
+
+async function loadArtists(){
+ const {data}=await supabase.from("artists").select("*");
+ artistsList.innerHTML="";
+ data.forEach(a=>{
+  artistsList.innerHTML+=`<div>${a.artistname} | ${a.phone}</div>`;
+ });
+}
+
+loadSongs();
+</script>
+
+</body>
+</html>
