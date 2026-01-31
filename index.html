@@ -3,183 +3,138 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>INGOMA PLAY</title>
+<title>Ingoma Play</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{box-sizing:border-box}
 body{
   margin:0;
   font-family:Arial, sans-serif;
   background:#000;
   color:#fff;
-}
-header{
-  background:#111;
-  padding:15px;
   text-align:center;
 }
-header img{
-  width:60px;
-}
-nav{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  display:flex;
-  background:#111;
-}
-nav button{
-  flex:1;
-  padding:12px;
-  background:none;
-  border:none;
-  color:#fff;
-  font-size:14px;
-}
-nav button.active{
-  background:#222;
-  color:#00ffcc;
-}
-main{
+
+header{
   padding:15px;
-  padding-bottom:80px;
+  border-bottom:1px solid #222;
 }
-.card{
-  background:#111;
-  padding:12px;
-  border-radius:8px;
-  margin-bottom:10px;
-}
-.hidden{display:none}
-input,button{
-  width:100%;
-  padding:10px;
-  margin-bottom:10px;
-  border-radius:5px;
-  border:none;
-}
-button{
-  background:#00ffcc;
-  color:#000;
+
+#appTitle{
+  font-size:26px;
   font-weight:bold;
+  color:#ff0000;
+  cursor:pointer;
+  user-select:none;
 }
-.back{
-  color:#00ffcc;
-  font-size:13px;
-  margin-bottom:10px;
+
+#adminPanel{
+  display:none;
+  margin-top:20px;
+  padding:15px;
+  border:1px solid #333;
+  background:#111;
 }
+
+button{
+  padding:10px 15px;
+  margin:5px;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+}
+
+.btn-danger{background:#c00;color:#fff;}
+.btn-ok{background:#0a0;color:#fff;}
 </style>
 </head>
 
 <body>
 
 <header>
-  <img src="https://cdn-icons-png.flaticon.com/512/727/727245.png" id="logo">
-  <h2>INGOMA PLAY</h2>
+  <!-- TEXT INGOMA PLAY (ADMIN CLICK) -->
+  <div id="appTitle">INGOMA PLAY</div>
 </header>
 
 <main>
+  <p>Murakaza neza kuri Ingoma Play 🎶</p>
 
-<!-- HOME -->
-<section id="home">
-  <div class="card">
-    <b>Indirimbo ya mbere</b><br>
-    Umuririmvyi: Demo Artist
-    <audio controls style="width:100%;margin-top:5px">
-      <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">
-    </audio>
-  </div>
-
-  <div class="card">
-    <b>Indirimbo ya kabiri</b><br>
-    Umuririmvyi: Demo Artist
-    <audio controls style="width:100%;margin-top:5px">
-      <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">
-    </audio>
-  </div>
-</section>
-
-<!-- UPLOAD -->
-<section id="upload" class="hidden">
-  <div class="back" onclick="goHome()">← Subira kuri Home</div>
-  <div class="card">
-    <h3>Upload indirimbo (Demo)</h3>
-    <input placeholder="Izina ry'indirimbo">
-    <input placeholder="Izina ry'umuririmvyi">
-    <input type="file">
-    <button>Upload (ntiraja online ubu)</button>
-  </div>
-</section>
-
-<!-- PROFILE -->
-<section id="profile" class="hidden">
-  <div class="card">
-    <h3>Profile</h3>
-    <p>Murakaza neza kuri Ingoma Play</p>
-  </div>
-</section>
-
-<!-- ADMIN -->
-<section id="admin" class="hidden">
-  <div class="back" onclick="goHome()">← Gusohoka admin</div>
-  <div class="card">
+  <!-- ADMIN PANEL -->
+  <div id="adminPanel">
     <h3>ADMIN PANEL</h3>
-    <p>Aha niho uzogenza ibintu vyose (tuza kubihuza na Supabase).</p>
-  </div>
-</section>
+    <p>Uri muri admin mode</p>
 
-<!-- PIN -->
-<section id="pin" class="hidden">
-  <div class="card">
-    <h3>Shiramwo PIN</h3>
-    <input id="pinInput" type="password" placeholder="PIN">
-    <button onclick="checkPin()">Injira</button>
-  </div>
-</section>
+    <button class="btn-ok" onclick="listStorage()">Raba Storage</button>
+    <button class="btn-danger" onclick="logoutAdmin()">Sohoka Admin</button>
 
+    <div id="output" style="margin-top:10px;font-size:14px;"></div>
+  </div>
 </main>
 
-<nav>
-  <button class="active" onclick="show('home',this)">Home</button>
-  <button onclick="show('upload',this)">Upload</button>
-  <button onclick="show('profile',this)">Profile</button>
-</nav>
-
 <script>
-let logoClicks = 0;
+/* ================= SUPABASE CONFIG ================= */
+const SUPABASE_URL = "https://fmrjmanvrydfmpiiaoap.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtcmptYW52cnlkZm1waWlhb2FwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1ODczNzgsImV4cCI6MjA4NTE2MzM3OH0.hKz4cDWEfyb7yubBbY3OKQPzh_GnodmKfVvm_5NNoiY";
 
-document.getElementById("logo").onclick = () => {
-  logoClicks++;
-  if(logoClicks >= 10){
-    showOnly('pin');
-    logoClicks = 0;
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ================= ADMIN CLICK SYSTEM ================= */
+let clickCount = 0;
+let isAdmin = false;
+const ADMIN_PIN = "9999";
+
+document.getElementById("appTitle").addEventListener("click", () => {
+  clickCount++;
+
+  if(clickCount === 10){
+    clickCount = 0;
+    const pin = prompt("Shiramwo PIN ya Admin:");
+    if(pin === ADMIN_PIN){
+      enableAdmin();
+    }else{
+      alert("PIN siyo ❌");
+    }
   }
-};
+});
 
-function checkPin(){
-  if(document.getElementById("pinInput").value === "9999"){
-    showOnly('admin');
-  }else{
-    alert("PIN siyo");
+function enableAdmin(){
+  isAdmin = true;
+  document.getElementById("adminPanel").style.display = "block";
+  alert("Winjiye muri ADMIN MODE ✅");
+}
+
+function logoutAdmin(){
+  isAdmin = false;
+  document.getElementById("adminPanel").style.display = "none";
+  alert("Wasohotse muri admin");
+}
+
+/* ================= STORAGE (PUBLIC) ================= */
+async function listStorage(){
+  if(!isAdmin) return;
+
+  const { data, error } = await supabase
+    .storage
+    .from("public") // izina rya bucket (ushobora kurihindura)
+    .list("", { limit: 20 });
+
+  const output = document.getElementById("output");
+  output.innerHTML = "";
+
+  if(error){
+    output.innerHTML = "Ikosa: " + error.message;
+    return;
   }
-}
 
-function show(id,btn){
-  document.querySelectorAll("section").forEach(s=>s.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-}
+  if(data.length === 0){
+    output.innerHTML = "Storage irimwo ubusa.";
+    return;
+  }
 
-function showOnly(id){
-  document.querySelectorAll("section").forEach(s=>s.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-}
-
-function goHome(){
-  showOnly('home');
-  document.querySelectorAll("nav button")[0].classList.add("active");
+  data.forEach(file => {
+    output.innerHTML += "📁 " + file.name + "<br>";
+  });
 }
 </script>
 
