@@ -1,281 +1,149 @@
 <!DOCTYPE html>
-<html lang="rw">
+<html lang="rn">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>INGOMA PLAY</title>
-
-<style>
-body{margin:0;font-family:Arial;background:#000;color:#fff}
-header{background:#ffcc00;color:#000;padding:14px;text-align:center}
-header input{width:92%;margin-top:10px;padding:10px;border-radius:20px;border:none}
-
-nav{display:flex;background:#111}
-nav button{flex:1;padding:14px;background:none;border:none;color:#fff}
-
-section{display:none;padding:15px}
-section.active{display:block}
-
-.card{background:#111;padding:14px;margin-bottom:14px;border-radius:10px}
-button{padding:10px;border:none;border-radius:6px;background:#ffcc00;font-weight:bold;margin-top:8px;width:100%}
-input,select{width:100%;padding:10px;margin-top:6px;border-radius:6px;border:none}
-
-.hidden{display:none}
-img,audio{width:100%;border-radius:10px;margin-top:8px}
-small{color:#aaa}
-hr{border:1px solid #222}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>INGOMA PLAY</title>
+    <style>
+        :root { --primary:#ffcc00; --bg:#000; --card:#111 }
+        body{margin:0;font-family:Segoe UI,Tahoma;background:var(--bg);color:#fff}
+        header{background:var(--primary);color:#000;padding:15px;text-align:center;position:sticky;top:0;z-index:9}
+        header input{width:90%;padding:12px;border-radius:25px;border:none;margin-top:10px}
+        nav{display:flex;background:#111}
+        nav button{flex:1;padding:15px;background:none;border:none;color:#aaa;font-weight:bold}
+        nav button.active-nav{color:var(--primary);border-bottom:3px solid var(--primary)}
+        section{display:none;padding:15px}
+        section.active{display:block}
+        .card{background:var(--card);padding:15px;margin-bottom:15px;border-radius:12px}
+        button{padding:12px;border:none;border-radius:8px;background:var(--primary);font-weight:bold;width:100%}
+        input{width:100%;padding:12px;margin-top:8px;border-radius:8px;border:1px solid #333;background:#222;color:#fff}
+        img{width:100%;border-radius:10px}
+        audio{width:100%;margin-top:10px}
+        .hidden{display:none}
+    </style>
 </head>
-
 <body>
 
 <header>
-<h2>INGOMA PLAY</h2>
-<small>Ijwi ryawe n’itunga ryawe</small>
-<input id="searchBox" placeholder="🔍 Rondera indirimbo" oninput="searchSongs()">
+    <h2>INGOMA PLAY</h2>
+    <small>Ijwi ryawe n’itunga ryawe</small><br>
+    <input id="searchBox" placeholder="🔍 Rondera indirimbo..." oninput="searchSongs()">
 </header>
 
 <nav>
-<button onclick="openTab('home')">HOME</button>
-<button onclick="openTab('artist')">UMURIRIMVYI</button>
-<button onclick="openTab('admin')">ADMIN</button>
+    <button class="active-nav" onclick="openTab('home',this)">HOME</button>
+    <button onclick="openTab('artist',this)">UMURIRIMVYI</button>
+    <button onclick="openTab('admin',this)">ADMIN</button>
 </nav>
 
-<!-- HOME -->
 <section id="home" class="active">
-<div class="card">
-<h3>🔥 ZIHOTSE</h3>
-<div id="trending"></div>
-</div>
-
-<div class="card">
-<h3>🆕 INDIRIMBO NSHASHA</h3>
-<div id="newSongs"></div>
-</div>
-
-<div class="card">
-<h3>🎧 INDIRIMBO ZOSE</h3>
-<div id="homeSongs"></div>
-</div>
+    <div id="homeSongs"></div>
 </section>
 
-<!-- ARTIST -->
 <section id="artist">
-<div class="card">
-<button onclick="showArtist('new')">URI MUSHASHA</button>
-<button onclick="showArtist('old')">URUMUSANGWA</button>
-</div>
+    <div id="artistAuth" class="card">
+        <button onclick="showArtist('new')">YANDIKISHA</button>
+        <button onclick="showArtist('old')" style="background:#333;color:#fff;margin-top:5px">INJIRA</button>
+    </div>
 
-<div id="artistNew" class="card hidden">
-<h3>KWISIGA</h3>
-<input id="realName" placeholder="Izina nyakuri">
-<input id="stageName" placeholder="Izina ry'ubuhanzi">
-<input id="phone" placeholder="Numero ya terefone">
-<input id="pin" placeholder="PIN">
-<button onclick="registerArtist()">KOMEZA</button>
-</div>
+    <div id="artistNew" class="card hidden">
+        <input id="realName" placeholder="Izina ryawe">
+        <input id="stageName" placeholder="Izina ry'ubuhanzi">
+        <input id="phone" placeholder="Telefone">
+        <input id="pin" type="password" placeholder="PIN">
+        <button onclick="registerArtist()">EMEZA</button>
+    </div>
 
-<div id="artistOld" class="card hidden">
-<h3>KWINJIRA</h3>
-<input id="loginPhone" placeholder="Numero ya terefone">
-<input id="loginPin" placeholder="PIN">
-<button onclick="loginArtist()">INJIRA</button>
-</div>
-
-<div id="channel" class="card hidden">
-<h3>CHANNEL</h3>
-<p>Balance: <b id="balance">0</b> FBU</p>
-<p>Uploads remaining: <b id="uploads">0</b></p>
-
-<button onclick="openPayment()">GUSHIRAKO INDIRIMBO</button>
-
-<div id="paymentBox" class="hidden">
-<hr>
-<p><b>UPLOAD 1 = <span id="price">5000</span> FBU</b></p>
-<button onclick="payWhatsApp()">RIHA</button>
-<button onclick="showPinBox()">WARISHE</button>
-</div>
-
-<div id="pinBox" class="hidden">
-<input id="paymentPin" placeholder="SHIRAMWO PIN">
-<button onclick="verifyPin()">EMEZA PIN</button>
-</div>
-
-<div id="uploadBox" class="hidden">
-<hr>
-<h4>UPLOAD INDIMBO</h4>
-<input id="songTitle" placeholder="Izina ry'indirimbo">
-<input type="file" id="songFile" accept="audio/*">
-<input type="file" id="coverFile" accept="image/*">
-<button onclick="uploadSong()">UPLOAD</button>
-<small id="uploadMsg"></small>
-</div>
-</div>
+    <div id="artistOld" class="card hidden">
+        <input id="loginPhone" placeholder="Telefone">
+        <input id="loginPin" type="password" placeholder="PIN">
+        <button onclick="loginArtist()">INJIRA</button>
+    </div>
 </section>
 
-<!-- ADMIN -->
 <section id="admin">
-<div id="adminLoginBox" class="card">
-<input id="adminPin" placeholder="ADMIN PIN">
-<button onclick="adminLogin()">INJIRA</button>
-</div>
-
-<div id="adminPanel" class="hidden">
-
-<div class="card">
-<h3>⚙ SETTINGS</h3>
-<input id="newPrice" placeholder="Igiciro ca upload">
-<button onclick="updatePrice()">SAVE PRICE</button>
-</div>
-
-<div class="card">
-<h3>🔐 CREATE PIN</h3>
-<button onclick="createPin()">KORA PIN</button>
-<div id="pinList"></div>
-</div>
-
-<div class="card">
-<h3>🎵 INDIRIMBO ZOSE</h3>
-<div id="songsAdmin"></div>
-</div>
-
-<div class="card">
-<h3>👥 ARTISTES</h3>
-<div id="artistsAdmin"></div>
-</div>
-
-</div>
+    <div class="card">
+        <input id="adminPin" type="password" placeholder="ADMIN PIN">
+        <button onclick="adminLogin()">INJIRA</button>
+    </div>
+    <div id="adminPanel" class="hidden"></div>
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const supabase = supabaseJs.createClient(
  "https://fmrjmanvrydfmpiiaoap.supabase.co",
- "YOUR_ANON_KEY_HERE"
+ "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtcmptYW52cnlkZm1waWlhb2FwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1ODczNzgsImV4cCI6MjA4NTE2MzM3OH0.hKz4cDWEfyb7yubBbY3OKQPzh_GnodmKfVvm_5NNoiY"
 );
 
-let currentArtist=null, approvedSongs=[], uploadPrice=5000;
+let allSongs=[];
 
-function openTab(id){
+function openTab(id,btn){
  document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+ document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active-nav"));
  document.getElementById(id).classList.add("active");
+ btn.classList.add("active-nav");
+}
+
+async function loadHome(){
+ const {data}=await supabase.from("songs").select("*").eq("status","approved");
+ allSongs=data||[];
+ render(allSongs);
+}
+function render(list){
+ document.getElementById("homeSongs").innerHTML=list.map(s=>`
+  <div class="card">
+    <img src="${s.cover_url}">
+    <b>${s.title}</b>
+    <audio controls src="${s.audio_url}"></audio>
+  </div>`).join("");
+}
+function searchSongs(){
+ const q=searchBox.value.toLowerCase();
+ render(allSongs.filter(s=>s.title.toLowerCase().includes(q)));
 }
 
 function showArtist(t){
- artistNew.classList.add("hidden"); artistOld.classList.add("hidden");
+ artistAuth.classList.add("hidden");
  document.getElementById(t==="new"?"artistNew":"artistOld").classList.remove("hidden");
 }
-
 async function registerArtist(){
- await supabase.from("artists").insert([{
+ await supabase.from("artists").insert({
   real_name:realName.value,
   stage_name:stageName.value,
   phone:phone.value,
-  pin:pin.value,
-  balance:0,
-  uploads_remaining:0
- }]);
- alert("Vyashobotse");
+  pin:pin.value
+ });
+ alert("Wiyandikishije!");
+ location.reload();
 }
-
 async function loginArtist(){
  const {data}=await supabase.from("artists")
  .select("*").eq("phone",loginPhone.value).eq("pin",loginPin.value).single();
- if(!data) return alert("Ntivyemewe");
- currentArtist=data;
- balance.innerText=data.balance;
- uploads.innerText=data.uploads_remaining;
- channel.classList.remove("hidden");
-}
-
-function openPayment(){ paymentBox.classList.remove("hidden"); }
-
-function payWhatsApp(){
- window.open(`https://wa.me/25766429717?text=Muraho Admin, ndashaka kuriha ${uploadPrice}FBU zo gushirako indirimbo. Artist:${currentArtist.stage_name}`);
-}
-
-function showPinBox(){ pinBox.classList.remove("hidden"); }
-
-async function verifyPin(){
- const {data}=await supabase.from("payment_pins")
- .select("*").eq("pin",paymentPin.value).eq("used",false).single();
- if(!data) return alert("PIN ntiyemewe");
-
- await supabase.from("payment_pins").update({used:true,artist_id:currentArtist.id}).eq("id",data.id);
- await supabase.from("artists").update({uploads_remaining:1}).eq("id",currentArtist.id);
-
- uploads.innerText=1;
- uploadBox.classList.remove("hidden");
- alert("PIN yemewe");
-}
-
-async function uploadSong(){
- if(currentArtist.uploads_remaining<1) return;
- const a=songFile.files[0], c=coverFile.files[0];
- const af=Date.now()+"_"+a.name, cf=Date.now()+"_"+c.name;
-
- await supabase.storage.from("songs").upload(af,a);
- await supabase.storage.from("covers").upload(cf,c);
-
- const au=supabase.storage.from("songs").getPublicUrl(af).data.publicUrl;
- const cu=supabase.storage.from("covers").getPublicUrl(cf).data.publicUrl;
-
- await supabase.from("songs").insert([{
-  title:songTitle.value,
-  artist_id:currentArtist.id,
-  audio_url:au,
-  cover_url:cu,
-  status:"pending",
-  views:0
- }]);
-
- await supabase.from("artists").update({uploads_remaining:0}).eq("id",currentArtist.id);
- uploads.innerText=0;
- uploadMsg.innerText="Irindiriye kwemerwa";
+ if(!data) return alert("PIN canke telefone siyo");
+ alert("Murakaze "+data.stage_name);
 }
 
 function adminLogin(){
  if(adminPin.value==="01010101"){
-  adminLoginBox.classList.add("hidden");
   adminPanel.classList.remove("hidden");
   loadAdmin();
  }
 }
-
 async function loadAdmin(){
- const {data:songs}=await supabase.from("songs").select("*");
- songsAdmin.innerHTML=songs.map(s=>`
-  <div class="card">${s.title}
-  <button onclick="approve(${s.id})">EMERA</button>
-  <button onclick="hideSong(${s.id})">HIDE</button>
+ const {data}=await supabase.from("songs").select("*").eq("status","pending");
+ adminPanel.innerHTML=data.map(s=>`
+  <div class="card">
+   ${s.title}
+   <button onclick="approve(${s.id})">EMERA</button>
   </div>`).join("");
-
- const {data:arts}=await supabase.from("artists").select("*");
- artistsAdmin.innerHTML=arts.map(a=>`
-  <div class="card">${a.stage_name} - ${a.phone}</div>`).join("");
 }
-
 async function approve(id){
  await supabase.from("songs").update({status:"approved"}).eq("id",id);
- loadAdmin();
-}
-async function hideSong(id){
- await supabase.from("songs").update({status:"hidden"}).eq("id",id);
- loadAdmin();
+ loadAdmin();loadHome();
 }
 
-async function createPin(){
- const pin=Math.floor(100000+Math.random()*900000);
- await supabase.from("payment_pins").insert([{pin,used:false}]);
- alert("PIN yakozwe: "+pin);
-}
-
-async function updatePrice(){
- uploadPrice=parseInt(newPrice.value);
- await supabase.from("settings").upsert([{key:"upload_price",value:uploadPrice}]);
- alert("Igiciro cahindutse");
-}
+loadHome();
 </script>
-
 </body>
 </html>
